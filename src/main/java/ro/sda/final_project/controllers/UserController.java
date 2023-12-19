@@ -15,7 +15,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/") //aceasta metoda se va apela cand vom avea un request de tipul get
+    @GetMapping("/")
     public ResponseEntity<ApiResponse> getAllUsers() {
         List<User> userList = userService.findAll();
         ApiResponse response = new ApiResponse.Builder()
@@ -23,12 +23,12 @@ public class UserController {
                 .message("User's list")
                 .data(userList)
                 .build();
-        return ResponseEntity.ok(response); //punem "ok" daca totul a decurs bine
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/")
-    public ResponseEntity<ApiResponse> createUser(@RequestBody User user) { //ceea ce va primi in body il va transforma in ceva de tipul user
-        User savedUser = userService.createUser(user); //apelam metoda createUser din service pentru a salva user-ul din baza de date
+    public ResponseEntity<ApiResponse> createUser(@RequestBody User user) {
+        User savedUser = userService.createUser(user);
         ApiResponse response = new ApiResponse.Builder()
                 .status(200)
                 .message("User added successfully")

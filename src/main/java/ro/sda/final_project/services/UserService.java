@@ -1,5 +1,6 @@
 package ro.sda.final_project.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ro.sda.final_project.entities.User;
 import ro.sda.final_project.repositories.UserRepository;
@@ -7,8 +8,10 @@ import ro.sda.final_project.repositories.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 public class UserService {
+    @Autowired
     private UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
@@ -17,6 +20,14 @@ public class UserService {
 
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    public Optional<User> findByUsername(String username) {
+        return userRepository.getByUsername(username);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.getByEmail(email);
     }
 
     public Optional<User> findById(Integer id) {
@@ -37,6 +48,5 @@ public class UserService {
 
     public void deleteById(Integer id) {
         userRepository.deleteById(id);
-
     }
 }
