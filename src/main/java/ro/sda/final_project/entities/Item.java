@@ -12,8 +12,8 @@ public class Item {
     private Integer id;
     private String title;
     private String description;
-    private double price;
-    private String imageURL;
+    private Double price;
+    private String imageUrl;
     @Enumerated(EnumType.STRING)
     private Category category;
 }

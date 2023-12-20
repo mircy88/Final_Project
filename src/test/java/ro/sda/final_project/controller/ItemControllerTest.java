@@ -14,11 +14,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,14 +67,15 @@ public class ItemControllerTest {
         item.setPrice(3250.00);
         item.setCategory(Category.LAPTOP);
 
-        Mockito.when(itemService.createItem(Mockito.any(Item.class))).thenReturn(item);
+        Mockito.when(itemService.createItem(Mockito.any(Item.class)))
+                .thenReturn(item);
 
         mockMvc.perform(post("/items/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(item)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("New Product"))
-                .andExpect(jsonPath("$.data.price").value(150.00));
+                .andExpect(jsonPath("$.data.price").value(3250.00));
     }
 
 }

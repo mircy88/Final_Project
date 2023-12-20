@@ -1,26 +1,32 @@
 package ro.sda.final_project.controllers;
 
+import ro.sda.final_project.dto.LoginDto;
+import ro.sda.final_project.dto.RegisterDto;
+import ro.sda.final_project.entities.User;
+import ro.sda.final_project.entities.UserRole;
+import ro.sda.final_project.services.UserService;
+import ro.sda.final_project.utils.ApiResponse;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ro.sda.final_project.entities.User;
-import ro.sda.final_project.services.UserService;
-import ro.sda.final_project.utils.ApiResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/users")
 public class UserController {
     @Autowired
     private UserService userService;
 
     @GetMapping("/")
-    public ResponseEntity<ApiResponse> getAllUsers() {
-        List<User> userList = userService.findAll();
+    public ResponseEntity<ApiResponse> getAllUser() {
+        List<User> userList = this.userService.findAll();
         ApiResponse response = new ApiResponse.Builder()
                 .status(200)
-                .message("User's list")
+                .message("Lista utilizatori generata")
                 .data(userList)
                 .build();
         return ResponseEntity.ok(response);
@@ -28,35 +34,103 @@ public class UserController {
 
     @PostMapping("/")
     public ResponseEntity<ApiResponse> createUser(@RequestBody User user) {
-        User savedUser = userService.createUser(user);
+        User usr = new User();
+        usr.setUsername(user.getUsername());
+        usr.setEmail(user.getEmail());
+        usr.setUserRole(user.getUserRole());
+        usr.setPassword(this.encryptPassword(user.getPassword()));
+
         ApiResponse response = new ApiResponse.Builder()
                 .status(200)
-                .message("User added successfully")
-                .data(savedUser)
+                .message("Utilizator creat cu success")
+                .data(userService.createUser(usr))
                 .build();
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/")
-    public ResponseEntity<ApiResponse> updateUser(@RequestBody User user) {
-        User updatedUser = userService.updateUser(user);
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateUser(@RequestBody User user, @PathVariable("id") Integer id) {
+        User usr = new User();
+        usr.setId(id);
+        usr.setUsername(user.getUsername());
+        usr.setEmail(user.getEmail());
+        usr.setUserRole(user.getUserRole());
+        usr.setPassword(this.encryptPassword(user.getPassword()));
+
         ApiResponse response = new ApiResponse.Builder()
                 .status(200)
-                .message("User updated successfully")
-                .data(updatedUser)
+                .message("Utilizator actualizat cu success")
+                .data(userService.updateUser(user))
                 .build();
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> deleteUser(@PathVariable ("id") Integer id) {
-        System.out.println("The User with the Id" + id + " will be deleted!!!");
+    public ResponseEntity<ApiResponse> deleteUser(@PathVariable("id") Integer id) {
         userService.deleteById(id);
         ApiResponse response = new ApiResponse.Builder()
                 .status(200)
-                .message("User deleted successfully")
+                .message("Utilizator sters cu success")
                 .data(null)
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> loginUser(@RequestBody LoginDto login) {
+        Optional<User> optionalUser = this.userService.findByEmail(login.getEmail());
+
+        if (optionalUser.isPresent()) {
+            User usr = optionalUser.get();
+
+            if (checkPassword(login.getPassword(), usr.getPassword())) {
+                ApiResponse response = new ApiResponse.Builder()
+                        .status(200)
+                        .message("Utilizator logat cu success")
+                        .data(usr)
+                        .build();
+                return ResponseEntity.ok(response);
+            } else {
+                ApiResponse response = new ApiResponse.Builder()
+                        .status(200)
+                        .message("Parola Invalida")
+                        .data(null)
+                        .build();
+                return ResponseEntity.ok(response);
+            }
+
+        } else {
+            ApiResponse response = new ApiResponse.Builder()
+                    .status(200)
+                    .message("Utilizatorul nu exista")
+                    .data(null)
+                    .build();
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse> registerUser(@RequestBody RegisterDto register) {
+        User usr = new User();
+        usr.setUsername(register.getUsername());
+        usr.setEmail(register.getEmail());
+        usr.setUserRole(UserRole.USER);
+        usr.setPassword(this.encryptPassword(register.getPassword()));
+
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Registered")
+                .data(this.userService.createUser(usr))
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    private String encryptPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    private boolean checkPassword(String password, String bdPassword) {
+        return BCrypt.checkpw(password, bdPassword);
+    }
 }
+

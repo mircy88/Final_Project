@@ -1,44 +1,89 @@
 package ro.sda.final_project.controllers;
 
 
+import ro.sda.final_project.entities.Category;
+import ro.sda.final_project.entities.Item;
+import ro.sda.final_project.services.ItemService;
+import ro.sda.final_project.utils.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ro.sda.final_project.entities.Item;
-import ro.sda.final_project.services.ItemService;
 
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/items")
 public class ItemController {
     @Autowired
     private ItemService itemService;
 
-    @GetMapping("/") //aceasta metoda se va apela cand vom avea un request de tipul get
-    public ResponseEntity<List<Item>> getAllUsers() {
-        List<Item> itemList = itemService.findAll();
+    @GetMapping("/")
+    public ResponseEntity<ApiResponse> getAllItems() {
+        List<Item> itemsList = itemService.findAll();
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Lista items generata cu success")
+                .data(itemsList)
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
-        return ResponseEntity.ok(itemList); //punem "ok" daca totul a decurs bine
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getItemById(@PathVariable("id") Integer id) {
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Item by ID")
+                .data(itemService.getById(id))
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/")
-    public ResponseEntity<Item> createItem(@RequestBody Item item) { //ceea ce va primi in body il va transforma in ceva de tipul user
-        Item savedItem = itemService.createItem(item); //apelam metoda createUser din service pentru a salva user-ul din baza de date
-        return ResponseEntity.ok(savedItem);
+    public ResponseEntity<ApiResponse> createItem(@RequestBody Item item) {
+        Item it = new Item();
+        it.setTitle(item.getTitle());
+        it.setDescription(item.getDescription());
+        it.setCategory(Category.valueOf(item.getCategory().toString()));
+        it.setPrice(item.getPrice());
+        it.setImageUrl(item.getImageUrl());
+
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Item creat cu success")
+                .data(itemService.createItem(it))
+                .build();
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/")
-    public ResponseEntity<Item> updateItem(@RequestBody Item item) {
-        Item updatedItem = itemService.updateItem(item);
-        return ResponseEntity.ok(updatedItem);
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateItem(@RequestBody Item item, @PathVariable("id") Integer id) {
+        System.out.println(id);
+        Item it = new Item();
+        it.setId(item.getId());
+        it.setTitle(item.getTitle());
+        it.setDescription(item.getDescription());
+        it.setCategory(Category.valueOf(item.getCategory().toString()));
+        it.setPrice(item.getPrice());
+        it.setImageUrl(item.getImageUrl());
+
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Item actulizat cu success")
+                .data(itemService.updateItem(item))
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteItem(@PathVariable ("id") Integer id) {
-        System.out.println("The Item with the Id" + id + " will be deleted!!!");
-        itemService.deleteById(id);
-        return ResponseEntity.ok("Item deleted");
+    public ResponseEntity<ApiResponse> deleteItem(@PathVariable("id") Integer id) {
+        itemService.deleteItem(id);
+        ApiResponse response = new ApiResponse.Builder()
+                .status(200)
+                .message("Item sters cu success")
+                .data(null)
+                .build();
+        return ResponseEntity.ok(response);
     }
-}
 
+}
